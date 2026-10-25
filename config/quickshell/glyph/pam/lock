@@ -1,0 +1,9 @@
+#%PAM-1.0
+# Glyph lock on Ubuntu. quickshell runs this service as your own user, so only
+# modules that work unprivileged belong here: pam_unix checks the password
+# through the setuid helper (Ubuntu: /usr/sbin/unix_chkpwd).
+#
+# Do not add pam_faillock here. It needs write access to /var/run/faillock and
+# fails as a normal user with PAM_AUTHINFO_UNAVAIL — every password is then
+# reported as wrong. Lockout counting would need a root helper, not this file.
+auth    required    pam_unix.so    nullok

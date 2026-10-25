@@ -1,0 +1,21 @@
+#!/bin/bash
+# qs — Quickshell for Ubuntu, installed by install-ubuntu.sh into ~/.local/bin.
+#
+# Ubuntu 24.04 has no quickshell package and its Qt 6.4 is too old for Glyph,
+# so Quickshell comes from Nix. The Nix build ships libglvnd but no Mesa, and
+# without a Mesa EGL vendor Qt dies with:
+#   qt.qpa.wayland: EGL not available
+#   ERROR: Failed to create graphics context ... "Failed to initialize graphics backend for OpenGL."
+# install-ubuntu.sh puts nixpkgs#mesa in the profile; point EGL at it here.
+export __EGL_VENDOR_LIBRARY_FILENAMES="${__EGL_VENDOR_LIBRARY_FILENAMES:-$HOME/.nix-profile/share/glvnd/egl_vendor.d/50_mesa.json}"
+export LIBGL_DRIVERS_PATH="${LIBGL_DRIVERS_PATH:-$HOME/.nix-profile/lib/dri}"
+
+# Session log for debugging (quickshell keeps inherited fds when daemonized with -d).
+# Service subcommands (qs list/log/...) must keep their stdout: rice parses them.
+case "${1:-}" in
+    list|kill|log|ipc|msg|--version|-V|--help|-h) ;;
+    *) exec >>"$HOME/.cache/glyph-shell.log" 2>&1 ;;
+esac
+
+# argv[0] = qs: `rice lock` detects a running lock with pgrep -f '^qs .*/lock[.]qml'
+exec -a qs "$HOME/.nix-profile/bin/quickshell" "$@"
