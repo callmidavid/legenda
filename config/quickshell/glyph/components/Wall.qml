@@ -1,8 +1,9 @@
 import QtQuick
 import qs
 
-// обои: картинка матрицей точек (look 0), серым фото в тон темы (1) или цветным (2) — см. shaders/wall.frag.
-// Две картинки: та, что на экране, и приходящая. Пришла — волна от origin, в конце меняются ролями, старая выгружается.
+// обои: картинка матрицей точек (look 0), серым фото (1), цветным (2) или обычным фото (3) — см. shaders/wall.frag.
+// gif/webp играет AnimatedImage без шейдера. Две картинки: та, что на экране, и приходящая. Пришла — волна от origin,
+// в конце меняются ролями, старая выгружается.
 // Пустой path — прозрачно: под обоями сетка и шар. opaque — картинка закрыла всё, то, что под ней, можно не рисовать
 Item {
     id: root
@@ -13,7 +14,11 @@ Item {
     property real bright: Theme.state.wallBright / 100
     property point origin: Qt.point(width / 2, height / 2)
     property bool animate: true // false — смена сразу, без волны
-    readonly property bool opaque: fx.hasA > 0 && !run.running
+    property bool playing: true // motion: пауза, когда обои закрыты пикером
+    readonly property string suffix: path ? path.slice(path.lastIndexOf(".") + 1).toLowerCase() : ""
+    readonly property bool motion: suffix === "gif" || suffix === "webp"
+    readonly property string stillSrc: motion ? "" : Theme.wallSrc(path)
+    readonly property bool opaque: motion ? anim.status === Image.Ready : (fx.hasA > 0 && !run.running)
 
     property bool flip: false // кто на экране: false — ia, true — ib
     readonly property Image cur: flip ? ib : ia
@@ -35,6 +40,14 @@ Item {
     onPathChanged: change()
     function change() {
         if (!sized) return;
+        if (motion) { // живые обои играет AnimatedImage, волна и шейдер не нужны
+            run.stop();
+            shown = "";
+            coming = "";
+            pending = false;
+            next.source = "";
+            return;
+        }
         if (run.running) { // листают быстрее волны — текущую досрочно в конец
             run.stop();
             swap();
@@ -46,7 +59,7 @@ Item {
         }
         coming = path;
         pending = true;
-        next.source = url(path);
+        next.source = url(stillSrc);
         check();
     }
     function check() {
@@ -69,10 +82,22 @@ Item {
     Image { id: ia; opacity: 0; asynchronous: true; cache: false; fillMode: Image.PreserveAspectCrop; sourceSize: Qt.size(root.width, root.height); onStatusChanged: if (root.next === ia) root.check() }
     Image { id: ib; opacity: 0; asynchronous: true; cache: false; fillMode: Image.PreserveAspectCrop; sourceSize: ia.sourceSize; onStatusChanged: if (root.next === ib) root.check() }
 
+    // живые обои: gif/webp играет сам, без шейдера и волны — картинка как есть
+    AnimatedImage {
+        id: anim
+        anchors.fill: parent
+        visible: root.motion
+        source: root.motion ? root.url(root.path) : ""
+        fillMode: Image.PreserveAspectCrop
+        cache: false
+        playing: root.motion && root.playing
+        onStatusChanged: if (status === Image.Error) console.warn("wall: cannot load", source)
+    }
+
     ShaderEffect {
         id: fx
         anchors.fill: parent
-        visible: hasA > 0 || hasB > 0 || run.running // нечего рисовать — нет и полноэкранного прохода
+        visible: !root.motion && (hasA > 0 || hasB > 0 || run.running) // нечего рисовать — нет и полноэкранного прохода
 
         // ---- uniforms ----
         readonly property size size: Qt.size(width, height)
@@ -87,7 +112,7 @@ Item {
         readonly property color hi: Theme.light ? Theme.bg : Theme.fg
         readonly property color bg: Theme.bg
         readonly property real pitch: root.pitch
-        readonly property real bright: root.bright
+        readonly property real bright: root.look === 3 ? 1 : root.bright
         property real dots: root.look === 0 ? 1 : 0
         property real mono: root.look < 2 ? 1 : 0
         property real wave: 0

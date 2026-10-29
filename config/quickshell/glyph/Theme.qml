@@ -44,7 +44,11 @@ Singleton {
     // обои рисуются из копии под экран (её делает пикер, magick): оригинал бывает png на 40 МБ, грузился бы секунды.
     // ponytail: копии нет (кэш стёрли, путь вписан руками) — пусто, сетка и шар, пока не открыть пикер
     readonly property string wallCache: (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache") + "/glyph/walls"
-    function wallSrc(p) { return p ? `${wallCache}/${p.slice(p.lastIndexOf("/") + 1)}.jpg` : ""; }
+    function wallSrc(p) {
+        if (!p) return "";
+        if (p.startsWith(wallCache + "/")) return p; // уже копия под экран
+        return `${wallCache}/${p.slice(p.lastIndexOf("/") + 1)}.jpg`;
+    }
 
     function fade(c, a) { return Qt.rgba(c.r, c.g, c.b, a); }
     // часы по настройке 12/24: «09» или «9»
@@ -79,7 +83,7 @@ Singleton {
             // обои (пикер wall/Walls, рисует components/Wall): путь к картинке; пусто — сетка и шар. Папку пикера можно сменить здесь
             property string wall: ""
             property string wallDir: ""    // пусто — ~/Pictures/Wallpapers
-            property int wallLook: 0       // 0 точки, 1 серое фото, 2 цвет
+            property int wallLook: 3       // 0 точки, 1 серое фото, 2 цвет, 3 обычное фото
             property int wallPitch: 10     // шаг точек, px
             property int wallBright: 85    // %, от фона до картинки
             property int rounding: 20      // окна hypr

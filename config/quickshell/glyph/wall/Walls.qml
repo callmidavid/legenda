@@ -9,13 +9,13 @@ import "../prefs"
 // обои: Super+Shift+W или настройки → look. Не сетка картинок — экран целиком и есть превью: выбранная собирается точками
 // волной от ленты внизу. Лента — круги-миниатюры точками, выбранная по центру в кольце (оно горит долей пути по коллекции),
 // под живой сейчас — красная точка. Первый круг — NOTHING: без картинки, только сетка и шар.
-// ←→ / колесо — листать, tab — вид (точки / серое фото / цвет), ↑↓ — шаг точек, shift ↑↓ — яркость, ↵ или клик по
+// ←→ / колесо — листать, tab — вид (точки / серое фото / цвет / фото), ↑↓ — шаг точек, shift ↑↓ — яркость, ↵ или клик по
 // выбранной — поставить, esc — как было. Картинки — из Theme.state.wallDir, копии под экран — в Theme.wallCache (один раз)
 PanelWindow {
     id: root
 
     readonly property string dir: Theme.state.wallDir || Quickshell.env("HOME") + "/Pictures/Wallpapers"
-    readonly property var looks: ["dots", "mono", "color"]
+    readonly property var looks: ["dots", "mono", "color", "photo"]
     // копии — в физических пикселях экрана, с запасом под обрезку
     readonly property string res: {
         const s = Quickshell.screens[0];
@@ -94,7 +94,7 @@ PanelWindow {
         id: scan
         command: ["bash", "-c", `shopt -s nullglob nocaseglob; mkdir -p "$2"; todo=()
 im=$(command -v magick || command -v convert) || exit 1
-for f in "$1"/*.{jpg,jpeg,png,webp}; do
+for f in "$1"/*.{jpg,jpeg,png,webp,gif}; do
     if [ "$2/\${f##*/}.jpg" -nt "$f" ]; then printf '%s\\n' "$f"; else todo+=("$f"); fi
 done
 [ \${#todo[@]} -eq 0 ] || printf '%s\\0' "\${todo[@]}" | xargs -0 -P 3 -I{} sh -c 'b=$(basename "$1")
@@ -130,8 +130,8 @@ done
             if (e.key === Qt.Key_Left || e.key === Qt.Key_H) root.go(-1);
             else if (e.key === Qt.Key_Right || e.key === Qt.Key_L) root.go(1);
             else if (e.key === Qt.Key_Home) root.pick = "";
-            else if (e.key === Qt.Key_Tab) root.look = (root.look + 1) % 3;
-            else if (e.key === Qt.Key_Backtab) root.look = (root.look + 2) % 3;
+            else if (e.key === Qt.Key_Tab) root.look = (root.look + 1) % 4;
+            else if (e.key === Qt.Key_Backtab) root.look = (root.look + 3) % 4;
             else if ((up || down) && e.modifiers & Qt.ShiftModifier) root.bright = Math.max(10, Math.min(100, root.bright + (up ? 5 : -5)));
             else if (up || down) root.pitch = Math.max(4, Math.min(32, root.pitch + (up ? 1 : -1)));
             else if (e.key === Qt.Key_Return || e.key === Qt.Key_Enter) root.apply();
@@ -155,7 +155,7 @@ done
             anchors.fill: parent
             active: root.visible
             sourceComponent: Wall {
-                path: root.files.includes(root.view) ? Theme.wallSrc(root.view) : ""
+                path: root.files.includes(root.view) ? root.view : ""
                 look: root.look
                 pitch: root.pitch
                 bright: root.bright / 100
