@@ -51,6 +51,14 @@ sudo apt-get install -y --no-install-recommends \
     bluez policykit-1-gnome xdg-user-dirs libnotify-bin \
     jq python3 qt6-gtk-platformtheme
 
+# Brightness: /sys/class/backlight/*/brightness is root:video 0664. Ubuntu does not
+# put the user in video, so brightnessctl (and the XF86MonBrightness* keys) fail
+# with "Permission denied" while the OSD still moves.
+if ! id -nG "$(id -un)" | tr ' ' '\n' | grep -qx video; then
+    sudo usermod -aG video "$(id -un)"
+    NEED_RELOGIN=1
+fi
+
 say "Quickshell 0.3.2 + Mesa"
 if [ "${LEGENDA_SKIP_NIX:-0}" != 1 ] && [ ! -x "$HOME/.nix-profile/bin/quickshell" ]; then
     if [ ! -x /nix/var/nix/profiles/default/bin/nix ]; then
@@ -107,6 +115,10 @@ fi
 
 say "симлинки конфигов"
 "$DOTS/install.sh" --links
+
+if [ "${NEED_RELOGIN:-0}" = 1 ]; then
+    say "яркость: пользователь добавлен в группу video — заработает после повторного входа."
+fi
 
 say "готово. Выйди из сессии и выбери Hyprland на экране входа (шестерёнка)."
 say "Обои: положи картинки в ~/Pictures/Wallpapers (Super+Shift+W)."
