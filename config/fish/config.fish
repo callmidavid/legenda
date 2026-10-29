@@ -1,3 +1,9 @@
+# ~/.local/bin holds the rice's own tools (`rice`, `qs`, starship). fish doesn't
+# read ~/.bashrc and Ubuntu doesn't add it to fish's PATH, so do it ourselves.
+if test -d $HOME/.local/bin; and not contains -- $HOME/.local/bin $PATH
+    set -gx PATH $HOME/.local/bin $PATH
+end
+
 if status is-interactive
     # Starship custom prompt
     command -v starship &> /dev/null && starship init fish | source
