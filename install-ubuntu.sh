@@ -46,7 +46,7 @@ sudo apt-get install -y --no-install-recommends \
     kitty fish btop cava eza zoxide direnv thunar pavucontrol \
     papirus-icon-theme bibata-cursor-theme fonts-jetbrains-mono \
     fonts-noto-color-emoji cliphist wl-clipboard grim slurp imagemagick \
-    libvips-tools qalc brightnessctl playerctl trash-cli ydotool \
+    libvips-tools qalc brightnessctl playerctl trash-cli ydotool wvkbd \
     gnome-keyring geoclue-2.0 upower power-profiles-daemon network-manager \
     bluez policykit-1-gnome xdg-user-dirs libnotify-bin \
     jq python3 qt6-gtk-platformtheme

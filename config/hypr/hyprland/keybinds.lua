@@ -161,6 +161,8 @@ hl.bind("CTRL + ALT + R", fn.record(false, false))
 hl.bind("SUPER + SHIFT + ALT + R", fn.record(true, false))
 hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"))
 hl.bind("SUPER + SHIFT + U", hl.dsp.exec_cmd("hyprctl kill"))
+-- экранная клавиатура: Super+K — показать wvkbd, ещё раз — убрать
+hl.bind("SUPER + K", hl.dsp.exec_cmd("pkill -x wvkbd-mobintl || wvkbd-mobintl -L 240"))
 -- Volume
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
 hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
