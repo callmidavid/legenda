@@ -51,13 +51,16 @@ sudo apt-get install -y --no-install-recommends \
     bluez policykit-1-gnome xdg-user-dirs libnotify-bin \
     jq python3 qt6-gtk-platformtheme
 
-# Brightness: /sys/class/backlight/*/brightness is root:video 0664. Ubuntu does not
-# put the user in video, so brightnessctl (and the XF86MonBrightness* keys) fail
-# with "Permission denied" while the OSD still moves.
-if ! id -nG "$(id -un)" | tr ' ' '\n' | grep -qx video; then
-    sudo usermod -aG video "$(id -un)"
-    NEED_RELOGIN=1
-fi
+# Brightness + keyboard backlight: /sys/class/backlight/*/brightness is root:video 0664
+# and /sys/class/leds/*kbd_backlight*/brightness is root:input 0664. Ubuntu puts the
+# user in neither, so brightnessctl (Fn brightness keys, keyboard-light control in the
+# quick panel) fails with "Permission denied" while the UI still moves.
+for g in video input; do
+    if ! id -nG "$(id -un)" | tr ' ' '\n' | grep -qx "$g"; then
+        sudo usermod -aG "$g" "$(id -un)"
+        NEED_RELOGIN=1
+    fi
+done
 
 say "Quickshell 0.3.2 + Mesa"
 if [ "${LEGENDA_SKIP_NIX:-0}" != 1 ] && [ ! -x "$HOME/.nix-profile/bin/quickshell" ]; then
@@ -117,7 +120,7 @@ say "симлинки конфигов"
 "$DOTS/install.sh" --links
 
 if [ "${NEED_RELOGIN:-0}" = 1 ]; then
-    say "яркость: пользователь добавлен в группу video — заработает после повторного входа."
+    say "яркость и подсветка клавиатуры: пользователь добавлен в группы video/input — заработает после повторного входа."
 fi
 
 say "готово. Выйди из сессии и выбери Hyprland на экране входа (шестерёнка)."

@@ -43,12 +43,12 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.global("shell:briDown"), { locked = true
 
 -- Keyboard backlight (ThinkPads and alike): cycles off → low → max.
 -- Fn+Space is handled by the EC on many ThinkPads and never reaches the OS,
--- so offer a normal key too. No-op when there is no *kbd_backlight* LED.
-local kbdLight = [=[sh -c 'd=$(ls /sys/class/leds | grep -m1 kbd_backlight); [ -n "$d" ] && c=/sys/class/leds/$d && v=$(cat $c/brightness) && m=$(cat $c/max_brightness) && echo $(( (v+1) % (m+1) )) > $c/brightness']=]
-hl.bind("SUPER + F9", hl.dsp.exec_cmd(kbdLight))
-hl.bind("XF86KbdLightOnOff", hl.dsp.exec_cmd(kbdLight), { locked = true })
-hl.bind("XF86KbdBrightnessUp", hl.dsp.exec_cmd(kbdLight), { locked = true, repeating = true })
-hl.bind("XF86KbdBrightnessDown", hl.dsp.exec_cmd(kbdLight), { locked = true, repeating = true })
+-- so offer a normal key too. KbdLight in the shell also drives the quick panel;
+-- it's a no-op when there is no *kbd_backlight* LED.
+hl.bind("SUPER + F9", hl.dsp.global("shell:kbdLight"))
+hl.bind("XF86KbdLightOnOff", hl.dsp.global("shell:kbdLight"), { locked = true })
+hl.bind("XF86KbdBrightnessUp", hl.dsp.global("shell:kbdLight"), { locked = true, repeating = true })
+hl.bind("XF86KbdBrightnessDown", hl.dsp.global("shell:kbdLight"), { locked = true, repeating = true })
 
 -- Media
 hl.bind("CTRL + SUPER + Space", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })

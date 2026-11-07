@@ -42,6 +42,12 @@ Singleton {
     function setBri(v) { Backlight.set(v); }
     Binding { target: Backlight; property: "steps"; value: Theme.state.briSteps }
 
+    // ---- подсветка клавиатуры: LED *kbd_backlight*, 0…max (обычно off/low/max) ----
+    readonly property bool hasKeys: KbdLight.available
+    readonly property int keysLevel: KbdLight.raw
+    readonly property int keysMax: KbdLight.max
+    function setKeys(v) { KbdLight.set(v); }
+
     // ---- раскладка: старт — main-клавиатура из hyprctl, дальше событие activelayout ----
     property string kbd: ""
     Process {

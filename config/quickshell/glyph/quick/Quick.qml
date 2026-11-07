@@ -204,6 +204,62 @@ PanelWindow {
                     Slider { icon: "\u{F00E0}"; visible: Sys.hasBri; value: Sys.bri; onMoved: v => Sys.setBri(v) }
                     Slider { icon: Sys.muted ? "\u{F075F}" : "\u{F057E}"; value: Sys.muted ? 0 : Sys.vol; onMoved: v => Sys.setVol(v) }
 
+                    // подсветка клавиатуры: off / low / max. Нет LED *kbd_backlight* — блока нет
+                    Column {
+                        visible: Sys.hasKeys
+                        width: parent.width
+                        spacing: 10
+                        Item {
+                            width: parent.width
+                            height: 20
+                            Row {
+                                x: 6
+                                spacing: 8
+                                Icon { anchors.verticalCenter: parent.verticalCenter; text: "\u{F030C}"; font.pixelSize: 14; color: Theme.grey }
+                                Lb { anchors.verticalCenter: parent.verticalCenter; text: "keyboard light" }
+                            }
+                            Lb { anchors.right: parent.right; rightPadding: 6; text: keys.names[Sys.keysLevel] ?? ""; color: Theme.fg }
+                        }
+                        Rectangle {
+                            id: keys
+                            width: parent.width
+                            height: 54
+                            radius: 27
+                            color: Theme.s2
+                            readonly property int cells: Sys.keysMax + 1
+                            readonly property real cell: (width - 12) / cells
+                            readonly property var names: {
+                                const a = [];
+                                for (let i = 0; i < cells; i++)
+                                    a.push(i === 0 ? "off" : i === cells - 1 ? "max" : i === 1 ? "low" : String(i));
+                                return a;
+                            }
+                            Rectangle {
+                                x: 6 + keys.cell * Sys.keysLevel
+                                y: 6
+                                width: keys.cell
+                                height: parent.height - 12
+                                radius: height / 2
+                                color: Theme.fg
+                                Behavior on x { NumberAnimation { duration: Theme.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Theme.glide } }
+                            }
+                            Repeater {
+                                model: keys.cells
+                                Item {
+                                    id: kc
+                                    required property int index
+                                    readonly property bool on: Sys.keysLevel === index
+                                    x: 6 + keys.cell * index
+                                    width: keys.cell
+                                    height: keys.height
+                                    Lb { anchors.centerIn: parent; text: keys.names[index]; color: kc.on ? Theme.ink : Theme.grey }
+                                    TapHandler { onTapped: { root.pin(); Sys.setKeys(kc.index); } }
+                                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                                }
+                            }
+                        }
+                    }
+
                     // режим питания, как в caelestia: четыре клетки, белая заливка переезжает к выбранной; засечки — сила.
                     // ultra — ещё 60 Гц и без анимаций, blur и теней (Rules.modes)
                     Rectangle {
