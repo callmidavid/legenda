@@ -9,6 +9,9 @@ hl.window_rule({ match = { fullscreen = false }, opacity = vars.windowOpacity ..
 -- приложения (kitty) сами просят maximize при открытии — игнорируем, тайлинг решает сам
 hl.window_rule({ match = { class = ".*" }, suppress_event = "maximize" })
 
+-- все окна по умолчанию плавают; вернуть одно в тайлинг — SUPER+ALT+Space
+hl.window_rule({ match = { class = ".*" }, float = true })
+
 hl.window_rule({ match = { float = true, xwayland = false }, center = true }) -- Center all floating windows (not xwayland cause popups)
 
 -- Floating Applications
