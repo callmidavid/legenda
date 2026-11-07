@@ -18,6 +18,7 @@ for _, key in ipairs({
     "Comma", "Period", "Minus", "Equal", "Backslash",
     "left", "right", "up", "down",
     "Page_Up", "Page_Down", "F12",
+    "F9",
     "mouse:272", "mouse:273", "mouse:274", "mouse:275", "mouse:276", "mouse:277",
     "mouse_up", "mouse_down",
 }) do
@@ -39,6 +40,15 @@ hl.bind(vars.kbRestoreLock, hl.dsp.exec_cmd(vars.lockCmd), { locked = true }) --
 -- Brightness: ставит шелл (services/Backlight) — OSD двигается сразу, brightnessctl догоняет
 hl.bind("XF86MonBrightnessUp", hl.dsp.global("shell:briUp"), { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.global("shell:briDown"), { locked = true, repeating = true })
+
+-- Keyboard backlight (ThinkPads and alike): cycles off → low → max.
+-- Fn+Space is handled by the EC on many ThinkPads and never reaches the OS,
+-- so offer a normal key too. No-op when there is no *kbd_backlight* LED.
+local kbdLight = [=[sh -c 'd=$(ls /sys/class/leds | grep -m1 kbd_backlight); [ -n "$d" ] && c=/sys/class/leds/$d && v=$(cat $c/brightness) && m=$(cat $c/max_brightness) && echo $(( (v+1) % (m+1) )) > $c/brightness']=]
+hl.bind("SUPER + F9", hl.dsp.exec_cmd(kbdLight))
+hl.bind("XF86KbdLightOnOff", hl.dsp.exec_cmd(kbdLight), { locked = true })
+hl.bind("XF86KbdBrightnessUp", hl.dsp.exec_cmd(kbdLight), { locked = true, repeating = true })
+hl.bind("XF86KbdBrightnessDown", hl.dsp.exec_cmd(kbdLight), { locked = true, repeating = true })
 
 -- Media
 hl.bind("CTRL + SUPER + Space", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
